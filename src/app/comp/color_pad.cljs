@@ -79,7 +79,8 @@
               :color (if (> (:l color) 50) :black :white),
               :font-family ui/font-code,
               :font-size 24})}
-    (<> (str "hsl(" (:h color) ", " (:s color) "%, " (:l color) "%)")))
+    (<>
+     (str "hsl(" (js/Math.round (* 2.4 (:h color))) ", " (:s color) "%, " (:l color) "%)")))
    (=< 16 nil)
    (comp-hundred color :h)
    (=< 16 nil)

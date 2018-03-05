@@ -3,4 +3,4 @@
 
 (def config {:storage "workflow"})
 
-(def store {:states {}, :color {:h 0, :s 0, :l 0}})
+(def store {:states {}, :color {:h 84, :s 86, :l 46}})

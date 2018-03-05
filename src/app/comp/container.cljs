@@ -9,7 +9,8 @@
             [respo.comp.space :refer [=<]]
             [reel.comp.reel :refer [comp-reel]]
             [respo-md.comp.md :refer [comp-md]]
-            [app.comp.color-pad :refer [comp-color-pad]]))
+            [app.comp.color-pad :refer [comp-color-pad]]
+            [respo.comp.inspect :refer [comp-inspect]]))
 
 (defcomp
  comp-container
@@ -28,4 +29,5 @@
       :href "https://github.com/Memkits/color-pad",
       :target "_blank"}
      (<> "Color Pad"))
-    (cursor-> :reel comp-reel states reel {}))))
+    (cursor-> :reel comp-reel states reel {})
+    (comp-inspect "color" (:color store) {:bottom 0, :left 0}))))
