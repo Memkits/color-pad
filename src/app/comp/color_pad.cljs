@@ -10,7 +10,7 @@
             [reel.comp.reel :refer [comp-reel]]
             [respo-md.comp.md :refer [comp-md]]))
 
-(defn hsl100 [h100 s l] (hsl (* 2.4 h100) s l))
+(defn hsl100 [h100 s l] (hsl (* 3.6 h100) s l))
 
 (defcomp
  comp-hundred
@@ -80,7 +80,7 @@
               :font-family ui/font-code,
               :font-size 24})}
     (<>
-     (str "hsl(" (js/Math.round (* 2.4 (:h color))) ", " (:s color) "%, " (:l color) "%)")))
+     (str "hsl(" (js/Math.round (* 3.6 (:h color))) ", " (:s color) "%, " (:l color) "%)")))
    (=< 16 nil)
    (comp-hundred color :h)
    (=< 16 nil)
