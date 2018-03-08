@@ -38,8 +38,9 @@
                            {:width 40,
                             :height 40,
                             :background-color computed-color,
-                            :cursor :pointer}
-                           (if (= decade i) {:outline (str "1px solid red")})),
+                            :cursor :pointer,
+                            :border-radius "0px"}
+                           (if (= decade i) {})),
                    :on-click (fn [e d! m!] (d! letter current-weight))}))]))))
      (list->
       {}
@@ -59,8 +60,9 @@
                            {:width 40,
                             :height 40,
                             :background-color computed-color,
-                            :cursor :pointer}
-                           (if (= digit i) {:outline (str "1px solid red")})),
+                            :cursor :pointer,
+                            :border-radius "0px"}
+                           (if (= digit i) {})),
                    :on-click (fn [e d! m!] (d! letter current-weight))}))]))))))))
 
 (defcomp
