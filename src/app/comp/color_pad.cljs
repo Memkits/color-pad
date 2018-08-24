@@ -11,7 +11,7 @@
             [respo-md.comp.md :refer [comp-md]]
             ["copy-text-to-clipboard" :as copy!]))
 
-(defn hsl100 [h100 s l] (hsl (* 3.6 h100) s l))
+(defn hsl100 [h100 s l] (hsl (.toFixed (* 3.6 h100)) s l))
 
 (defcomp
  comp-color-square
