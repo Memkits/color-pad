@@ -104,8 +104,8 @@
    {:style ui/row}
    (comp-hundred color :h)
    (=< 32 nil)
-   (comp-hundred color :s)
-   (=< 32 nil)
    (comp-hundred color :l)
+   (=< 32 nil)
+   (comp-hundred color :s)
    (=< 32 nil)
    (comp-color-square states color))))
