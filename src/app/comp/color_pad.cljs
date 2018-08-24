@@ -8,9 +8,39 @@
             [verbosely.core :refer [verbosely!]]
             [respo.comp.space :refer [=<]]
             [reel.comp.reel :refer [comp-reel]]
-            [respo-md.comp.md :refer [comp-md]]))
+            [respo-md.comp.md :refer [comp-md]]
+            ["copy-text-to-clipboard" :as copy!]))
 
 (defn hsl100 [h100 s l] (hsl (* 3.6 h100) s l))
+
+(defcomp
+ comp-color-square
+ (states color)
+ (let [state (or (:data states) {:hint? false})
+       color-text (hsl100 (:h color) (:s color) (:l color))]
+   (div
+    {:style (merge
+             ui/center
+             {:width 400,
+              :height 400,
+              :background-color color-text,
+              :cursor :pointer,
+              :position :relative}),
+     :on-click (fn [e d! m!]
+       (copy! color-text)
+       (m! (assoc state :hint? true))
+       (js/setTimeout (fn [] (m! (assoc state :hint? false))) 1200))}
+    (<>
+     color-text
+     {:font-family ui/font-code, :font-size 24, :color (if (> (:l color) 50) :black :white)})
+    (when (:hint? state)
+      (div
+       {:style {:position :absolute,
+                :left 8,
+                :top -20,
+                :font-size 14,
+                :font-family ui/font-fancy}}
+       (<> "Copied"))))))
 
 (defcomp
  comp-hundred
@@ -41,7 +71,7 @@
                             :cursor :pointer,
                             :border-radius "0px"}
                            (if (= decade i) {})),
-                   :on-click (fn [e d! m!] (d! letter current-weight))}))]))))
+                   :on-mouseenter (fn [e d! m!] (d! letter current-weight))}))]))))
      (list->
       {}
       (->> (range 10)
@@ -63,29 +93,19 @@
                             :cursor :pointer,
                             :border-radius "0px"}
                            (if (= digit i) {})),
-                   :on-click (fn [e d! m!] (d! letter current-weight))}))]))))))))
+                   :on-mouseenter (fn [e d! m!] (d! letter current-weight))}))]))))))))
 
 (defcomp
  comp-color-pad
- (color)
+ (states color)
  (div
   {:style {:padding 16}}
   (div
    {:style ui/row}
-   (div
-    {:style (merge
-             ui/center
-             {:width 400,
-              :height 400,
-              :background-color (hsl100 (:h color) (:s color) (:l color)),
-              :color (if (> (:l color) 50) :black :white),
-              :font-family ui/font-code,
-              :font-size 24})}
-    (<>
-     (str "hsl(" (js/Math.round (* 3.6 (:h color))) ", " (:s color) "%, " (:l color) "%)")))
-   (=< 16 nil)
    (comp-hundred color :h)
-   (=< 16 nil)
+   (=< 32 nil)
    (comp-hundred color :s)
-   (=< 16 nil)
-   (comp-hundred color :l))))
+   (=< 32 nil)
+   (comp-hundred color :l)
+   (=< 32 nil)
+   (comp-color-square states color))))
