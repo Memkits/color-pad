@@ -18,7 +18,7 @@
  (let [store (:store reel), states (:states store), color (:color store)]
    (div
     {:style (merge ui/center ui/fullscreen)}
-    (comp-color-pad color)
+    (comp-color-pad states color)
     (a
      {:style {:position :absolute,
               :right 0,
