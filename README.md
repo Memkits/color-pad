@@ -4,11 +4,11 @@ Color Pad
 
 > Simple tool for deciding colors.
 
-Demo http://repo.memkits.org/color-pad/
+Demo http://r.tiye.me/Memkits/color-pad/
 
 ### Workflow
 
-Workflow https://github.com/mvc-works/calcit-workflow
+Workflow https://github.com/calcit-lang/respo-calcit-workflow
 
 ### License
 
