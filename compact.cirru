@@ -154,6 +154,7 @@
         |main! $ quote
           defn main! ()
             println "\"Running mode:" $ if config/dev? "\"dev" "\"release"
+            if config/dev? $ load-console-formatter!
             if ssr? $ render-app! realize-ssr!
             render-app! render!
             add-watch *reel :changes $ fn (r p) (render-app! render!)

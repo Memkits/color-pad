@@ -1146,6 +1146,13 @@
                       |j $ {} (:at 1548343805325) (:by |rJG4IHzWf) (:id |4K0DKBOJjhl) (:text |config/dev?) (:type :leaf)
                       |r $ {} (:at 1548343805325) (:by |rJG4IHzWf) (:id |2fdX_mDqasl) (:text "|\"dev") (:type :leaf)
                       |v $ {} (:at 1548343805325) (:by |rJG4IHzWf) (:id |mH2Vi0-7FGP) (:text "|\"release") (:type :leaf)
+              |w $ {} (:at 1675184608191) (:by |rJG4IHzWf) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1675184608632) (:by |rJG4IHzWf) (:text |if) (:type :leaf)
+                  |b $ {} (:at 1675184613902) (:by |rJG4IHzWf) (:text |config/dev?) (:type :leaf)
+                  |h $ {} (:at 1675184616979) (:by |rJG4IHzWf) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1675184629801) (:by |rJG4IHzWf) (:text |load-console-formatter!) (:type :leaf)
               |x $ {} (:at 1548343805325) (:by |rJG4IHzWf) (:id |YSnr-fpmLCq) (:type :expr)
                 :data $ {}
                   |T $ {} (:at 1548343805325) (:by |rJG4IHzWf) (:id |mVMdBuT0Lv6) (:text |if) (:type :leaf)
