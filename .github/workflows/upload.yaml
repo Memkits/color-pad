@@ -70,7 +70,7 @@ jobs:
         set -euo pipefail
         calcit calcit.cirru js
         yarn vite build --base="$VITE_BASE_URL"
-        rg -Fq "$VITE_BASE_URL" dist/index.html
+        grep -Fq "$VITE_BASE_URL" dist/index.html
 
     - name: Check COS credentials
       id: cos-credentials
