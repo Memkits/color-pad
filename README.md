@@ -11,13 +11,17 @@ Demo: https://r.tiye.me/Memkits/color-pad/
 Use Calcit 0.27.0, Node.js 24, and Yarn 4.18.0:
 
 ```bash
-caps --ci
+caps --strict --ci
 yarn install --immutable
 calcit calcit.cirru --check-only
 calcit calcit.cirru test --tag unit --require-match
 calcit calcit.cirru js
+node --test scripts/color-pad-regression.test.mjs
 yarn vite build
 ```
+
+Use only `calcit.cirru` and `deps.cirru`; the retired `compact.cirru` and
+`package.cirru` snapshots must not be restored. CI checks their absence.
 
 ### Frontend deployment
 
