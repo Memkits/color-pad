@@ -5,5 +5,8 @@
 js-out/
 node_modules/
 dist/
+.yarn/
 
 .compact-inc.cirru
+
+.DS_Store
