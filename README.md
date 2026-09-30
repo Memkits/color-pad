@@ -4,11 +4,32 @@ Color Pad
 
 > Simple tool for deciding colors.
 
-Demo http://r.tiye.me/Memkits/color-pad/
+Demo: https://r.tiye.me/Memkits/color-pad/
 
-### Workflow
+### Development
 
-Workflow https://github.com/calcit-lang/respo-calcit-workflow
+Use Calcit 0.27.0, Node.js 24, and Yarn 4.18.0:
+
+```bash
+caps --ci
+yarn install --immutable
+calcit calcit.cirru --check-only
+calcit calcit.cirru test --tag unit --require-match
+calcit calcit.cirru js
+yarn vite build
+```
+
+### Frontend deployment
+
+The workflow builds only the frontend `dist/` assets. It uploads and publicly
+verifies them on COS, using `Memkits/color-pad/pr/` for pull requests and
+`Memkits/color-pad/` for `main`. Vite uses the corresponding CDN URL as its
+base path. The existing production rsync destination remains
+`rsync-user@tiye.me:/web-assets/repo/Memkits/color-pad`; the COS migration does
+not change any server-side deployment path or upload server code.
+
+See the [Respo Calcit workflow](https://github.com/calcit-lang/respo-calcit-workflow)
+for the shared deployment pattern.
 
 ### License
 
