@@ -5,7 +5,7 @@
   :entries $ {} $ :default
     {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
-      :modules $ [] |respo.calcit/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/
+      :modules $ [] |respo.calcit/ |respo-ui.calcit/ |reel.calcit/
       :type-slots $ {}
   :files $ {}
     'app.comp.color-pad $ %{} 'FileEntry
@@ -112,13 +112,12 @@
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.color-pad
           :require
-            [] respo-ui.core :refer $ [] hsl
-            [] respo-ui.core :as ui
-            [] respo.core :refer $ [] defcomp cursor-> action-> mutation-> list-> <> div button textarea span
-            [] respo.comp.space :refer $ [] =<
-            [] reel.comp.reel :refer $ [] comp-reel
-            [] respo-md.comp.md :refer $ [] comp-md
-            [] |copy-text-to-clipboard :default copy!
+            respo-ui.core :refer $ [] hsl
+            respo-ui.core :as ui
+            respo.core :refer $ [] defcomp cursor-> action-> mutation-> list-> <> div button textarea span
+            respo.comp.space :refer $ [] =<
+            reel.comp.reel :refer $ [] comp-reel
+            |copy-text-to-clipboard :default copy!
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
         'comp-container $ %{} 'CodeEntry (:doc |)
@@ -152,14 +151,13 @@
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.container
           :require
-            [] respo-ui.core :refer $ [] hsl
-            [] respo-ui.core :as ui
-            [] respo.core :refer $ [] defcomp >> <> div button textarea span a
-            [] respo.comp.space :refer $ [] =<
-            [] reel.comp.reel :refer $ [] comp-reel
-            [] respo-md.comp.md :refer $ [] comp-md
-            [] app.comp.color-pad :refer $ [] comp-color-pad
-            [] respo.comp.inspect :refer $ [] comp-inspect
+            respo-ui.core :refer $ [] hsl
+            respo-ui.core :as ui
+            respo.core :refer $ [] defcomp >> <> div button textarea span a
+            respo.comp.space :refer $ [] =<
+            reel.comp.reel :refer $ [] comp-reel
+            app.comp.color-pad :refer $ [] comp-color-pad
+            respo.comp.inspect :refer $ [] comp-inspect
     'app.config $ %{} 'FileEntry
       :defs $ {}
         'dev? $ %{} 'CodeEntry (:doc |)
