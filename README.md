@@ -15,10 +15,14 @@ caps --strict --ci
 yarn install --immutable
 calcit calcit.cirru --check-only
 calcit calcit.cirru test --tag unit --require-match
-calcit calcit.cirru js
+yarn build
 node --test scripts/color-pad-regression.test.mjs
-yarn vite build
+yarn dev
 ```
+
+Build and dev compile Calcit once before starting Vite. To keep generated JS
+updated while editing Calcit, run `calcit calcit.cirru js -w` in another terminal.
+`VITE_BASE_URL` selects the build's asset base, defaulting to `./` locally.
 
 Use only `calcit.cirru` and `deps.cirru`; the retired `compact.cirru` and
 `package.cirru` snapshots must not be restored. CI checks their absence.
@@ -26,7 +30,8 @@ Use only `calcit.cirru` and `deps.cirru`; the retired `compact.cirru` and
 ### Frontend deployment
 
 The workflow builds only the frontend `dist/` assets. It uploads and publicly
-verifies them on COS, using `Memkits/color-pad/pr/12/` for pull requests and
+verifies them with the COS action's built-in verification, using
+`Memkits/color-pad/pr/<number>/<run-id>/<attempt>/` for pull requests and
 `Memkits/color-pad/` for `main`. Vite uses the corresponding CDN URL as its
 base path. The existing production rsync destination remains
 `rsync-user@tiye.me:/web-assets/repo/Memkits/color-pad`; the COS migration does
