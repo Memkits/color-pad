@@ -26,7 +26,7 @@ Use only `calcit.cirru` and `deps.cirru`; the retired `compact.cirru` and
 ### Frontend deployment
 
 The workflow builds only the frontend `dist/` assets. It uploads and publicly
-verifies them on COS, using `Memkits/color-pad/pr/` for pull requests and
+verifies them on COS, using `Memkits/color-pad/pr/12/` for pull requests and
 `Memkits/color-pad/` for `main`. Vite uses the corresponding CDN URL as its
 base path. The existing production rsync destination remains
 `rsync-user@tiye.me:/web-assets/repo/Memkits/color-pad`; the COS migration does
