@@ -21,7 +21,7 @@ yarn dev
 ```
 
 Build and dev compile Calcit once before starting Vite. To keep generated JS
-updated while editing Calcit, run `calcit calcit.cirru js -w` in another terminal.
+updated while editing Calcit, run `calcit calcit.cirru -w` in another terminal.
 `VITE_BASE_URL` selects the build's asset base, defaulting to `./` locally.
 
 Use only `calcit.cirru` and `deps.cirru`; the retired `compact.cirru` and
@@ -30,7 +30,8 @@ Use only `calcit.cirru` and `deps.cirru`; the retired `compact.cirru` and
 ### Frontend deployment
 
 The workflow builds only the frontend `dist/` assets. It uploads and publicly
-verifies them with the COS action's built-in verification, using
+verifies them with the formal COS action v1.2.0's built-in HTML reference and
+public-content verification, using
 `Memkits/color-pad/pr/<number>/<run-id>/<attempt>/` for pull requests and
 `Memkits/color-pad/` for `main`. Vite uses the corresponding CDN URL as its
 base path. The existing production rsync destination remains

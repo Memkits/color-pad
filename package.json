@@ -4,7 +4,7 @@
   "description": "ClojureScript workflow using Calcit Editor",
   "main": "index.js",
   "scripts": {
-    "compile": "calcit calcit.cirru js",
+    "compile": "calcit calcit.cirru",
     "build": "yarn compile && vite build --base=${VITE_BASE_URL:-./}",
     "dev": "yarn compile && vite"
   },
