@@ -4,9 +4,9 @@ import * as c from '../js-out/calcit.core.mjs';
 import { comp_hundred, hsl100 } from '../js-out/app.comp.color-pad.mjs';
 import { store } from '../js-out/app.schema.mjs';
 import { updater } from '../js-out/app.updater.mjs';
-import { component_$q_, component_tree } from '../js-out/respo.util.detect.mjs';
+import { component_$q_, component_tree, render_node_value } from '../js-out/respo.util.detect.mjs';
 
-const t = c.init_tags(['h', 's', 'l', 'color', 'states', 'data', 'hint?', 'square', 'event', 'children', 'mouseenter', 'some']);
+const t = c.init_tags(['h', 's', 'l', 'color', 'states', 'data', 'hint?', 'square', 'event', 'children', 'mouseenter', 'some', 'node']);
 const field = (v, k) => c.option_$o_unwrap(c.get(v, k));
 const nth = (v, i) => c.option_$o_unwrap(c.nth(v, i));
 const en = c._$n_enum_$o_nth;
@@ -20,7 +20,10 @@ function collectHover(node, result = []) {
   const children = c.get(node, t.children);
   if (en(children, 0) === t.some) {
     const pairs = c.option_$o_unwrap(children);
-    for (let i = 0; i < c.count(pairs); i++) collectHover(nth(nth(pairs, i), 1), result);
+    for (let i = 0; i < c.count(pairs); i++) {
+      const child = field(nth(pairs, i), t.node);
+      if (en(child, 0) === t.some) collectHover(render_node_value(c.option_$o_unwrap(child)), result);
+    }
   }
   return result;
 }

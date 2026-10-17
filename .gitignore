@@ -12,3 +12,4 @@ dist/
 .compact-inc.cirru
 
 .DS_Store
+/.calcit/
