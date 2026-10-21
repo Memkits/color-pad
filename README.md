@@ -17,6 +17,8 @@ UI 0.8.0 和 js-ffi 0.2.5。升级时同步安装整张依赖图并重新生成 
 外部存档和 Reel 回放值通过真实解码进入 Store/Color，非法颜色不再由静态断言冒充 Number；
 根状态缺少 cursor 时使用空游标，复制提示写回根状态。DOM 挂载复用 Respo 的 typed selector。
 开放的状态值和回调边界仍保留显式 Dynamic；本轮没有新增 unsafe 或放宽质量预算。
+复制入口校验库返回的真实 Bool：成功显示 `Copied` 并延时清除，失败显示 `Copy failed`，
+不再把一次点击当成复制成功。新增提示状态对旧存档缺省为 false，无需转换存档。
 
 ```bash
 caps --strict --ci
