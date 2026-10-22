@@ -8,14 +8,17 @@ Demo: https://r.tiye.me/Memkits/color-pad/
 
 ### Development
 
-使用已发布的配对 Calcit/procs **0.30.1-alpha.4**（预发布，不是正式 0.30.1）、
-Caps 0.1.1、Node.js 24 和 Yarn 4.18.0。模块使用正式 Reel 0.6.39、
-Respo 0.16.122、UI 0.7.41 和 js-ffi 0.2.3。
+使用已发布的配对 Calcit/procs **0.30.1**、Caps 0.1.1、Node.js 24
+和 Yarn 4.18.0。模块使用正式 Reel 0.6.41、Respo 0.16.124、
+UI 0.8.0 和 js-ffi 0.2.5。升级时同步安装整张依赖图并重新生成 JS，
+不能沿用旧 alpha runtime 或模块缓存；原存档 key、Map 格式和部署路径不变。
 
 选色、百分制 HSL、复制提示、原存储 key 和 Map 存档格式保持不变。
 外部存档和 Reel 回放值通过真实解码进入 Store/Color，非法颜色不再由静态断言冒充 Number；
 根状态缺少 cursor 时使用空游标，复制提示写回根状态。DOM 挂载复用 Respo 的 typed selector。
 开放的状态值和回调边界仍保留显式 Dynamic；本轮没有新增 unsafe 或放宽质量预算。
+复制入口校验库返回的真实 Bool：成功显示 `Copied` 并延时清除，失败显示 `Copy failed`，
+不再把一次点击当成复制成功。新增提示状态对旧存档缺省为 false，无需转换存档。
 
 ```bash
 caps --strict --ci

@@ -41,21 +41,28 @@
               div
                 {}
                   :style $ merge ui/center $ {} (:width 400) (:height 400) (:background-color color-text) (:cursor :pointer) (:position :relative)
-                  :on-click $ fn (e d!) (copy! color-text)
-                    d! $ :: :states cursor $ assoc state :hint? true
-                    js/setTimeout
-                      fn () $ d! $ :: :states cursor (assoc state :hint? false)
-                      , 1200
-                    , &unit
+                  :on-click $ fn (e d!)
+                    let
+                        copied? $ expect-bool |copy-text-to-clipboard $ copy! color-text
+                        next-state $ assoc (assoc state :hint? copied?) :copy-failed? $ not copied?
+                      d! $ :: :states cursor next-state
+                      when copied? $ js/setTimeout
+                        fn () $ d! $ :: :states cursor (assoc next-state :hint? false)
+                        , 1200
+                      , &unit
                 <> color-text $ {} (:font-family ui/font-code) (:font-size 24)
                   :color $ if
                     > (:l color) 50
                     , :black :white
                 when
-                  option:unwrap-or (get state :hint?) false
+                  or
+                    option:unwrap-or (get state :hint?) false
+                    option:unwrap-or (get state :copy-failed?) false
                   div
                     {} $ :style $ {} (:position :absolute) (:left 8) (:top -20) (:font-size 14) (:font-family ui/font-fancy)
-                    <> |Copied
+                    <> $ if
+                      option:unwrap-or (get state :copy-failed?) false
+                      , "|Copy failed" |Copied
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
             :args $ [] (:: 'Map 'Tag 'Dynamic) 'app.schema/Color
@@ -121,6 +128,7 @@
             respo.core :refer $ defcomp list-> <> div
             respo.comp.space :refer $ =<
             |copy-text-to-clipboard :default copy!
+            js-ffi.contract :refer $ expect-bool
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
         'comp-container $ %{} 'CodeEntry (:doc |)

@@ -55,7 +55,8 @@ jobs:
         calcit calcit.cirru edit format
         git diff --exit-code -- calcit.cirru
         calcit calcit.cirru --check-only --all-defs
-        calcit calcit.cirru fix --workflow strict --verify
+        calcit calcit.cirru fix --workflow strict --verify --format json > "$RUNNER_TEMP/color-pad-strict.json"
+        jq -e '.data.workflow.status == "passed" and (.diagnostics | length == 0)' "$RUNNER_TEMP/color-pad-strict.json"
         calcit calcit.cirru test --tag unit --require-match
 
     - name: Select frontend CDN path
