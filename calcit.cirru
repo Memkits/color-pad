@@ -31,16 +31,16 @@
           :code $ quote $ defcomp comp-color-square (states color)
             let
                 cursor $ decode-map-as
-                  option:unwrap-or (get states :cursor) ([])
+                  .unwrap-or (get states :cursor) ([])
                   :: 'List 'Dynamic
                 state $ decode-map-as
-                  option:unwrap-or (get states :data)
+                  .unwrap-or (get states :data)
                     {} $ :hint? false
                   :: 'Map 'Tag 'Bool
                 color-text $ hsl100 color.:h color.:s color.:l
               div
                 {}
-                  :style $ merge ui/center $ {} (:width 400) (:height 400) (:background-color color-text) (:cursor :pointer) (:position :relative)
+                  :style $ .merge ui/center $ {} (:width 400) (:height 400) (:background-color color-text) (:cursor :pointer) (:position :relative)
                   :on-click $ fn (e d!)
                     let
                         copied? $ expect-bool |copy-text-to-clipboard $ copy! color-text
@@ -56,12 +56,12 @@
                     , :black :white
                 when
                   or
-                    option:unwrap-or (get state :hint?) false
-                    option:unwrap-or (get state :copy-failed?) false
+                    .unwrap-or (get state :hint?) false
+                    .unwrap-or (get state :copy-failed?) false
                   div
                     {} $ :style $ {} (:position :absolute) (:left 8) (:top -20) (:font-size 14) (:font-family ui/font-fancy)
                     <> $ if
-                      option:unwrap-or (get state :copy-failed?) false
+                      .unwrap-or (get state :copy-failed?) false
                       , "|Copy failed" |Copied
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
@@ -88,7 +88,7 @@
                               :l $ hsl100 (:h color) (:s color) current-weight
                               _ :transparent
                           div $ {}
-                            :style $ merge ui/center $ {} (:width 40) (:height 40) (:background-color computed-color) (:cursor :pointer) (:border-radius |0px)
+                            :style $ .merge ui/center $ {} (:width 40) (:height 40) (:background-color computed-color) (:cursor :pointer) (:border-radius |0px)
                             :on $ {} $ :mouseenter
                               fn (e d!)
                                 d! $ :: :color letter current-weight
@@ -103,7 +103,7 @@
                               :l $ hsl100 (:h color) (:s color) current-weight
                               _ :transparent
                           div $ {}
-                            :style $ merge ui/center $ {} (:width 40) (:height 40) (:background-color computed-color) (:cursor :pointer) (:border-radius |0px)
+                            :style $ .merge ui/center $ {} (:width 40) (:height 40) (:background-color computed-color) (:cursor :pointer) (:border-radius |0px)
                             :on $ {} $ :mouseenter
                               fn (e d!)
                                 d! $ :: :color letter current-weight
@@ -134,11 +134,11 @@
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (reel)
             let
-                store $ app.schema/read-store $ option:unwrap (get reel :store)
+                store $ app.schema/read-store $ .unwrap (get reel :store)
                 states store.:states
                 color store.:color
               div
-                {} $ :style $ merge ui/center ui/fullscreen
+                {} $ :style $ .merge ui/center ui/fullscreen
                   {} $ :background-color :transparent
                 comp-color-pad states color
                 comp-repo-entry
@@ -170,7 +170,7 @@
       :defs $ {}
         'dev? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def dev?
-            = |dev $ option:unwrap-or (get-env |mode) |release
+            = |dev $ .unwrap-or (get-env |mode) |release
           :examples $ []
           :schema $ :: 'Bool
         'site $ %{} 'CodeEntry (:doc |)
@@ -192,8 +192,8 @@
             if (map? data)
               let
                   saved $ decode-map-as data $ :: 'Map 'Tag 'Dynamic
-                  color-data $ option:unwrap-or (get saved :color) nil
-                  states-data $ option:unwrap-or (get saved :states) nil
+                  color-data $ .unwrap-or (get saved :color) nil
+                  states-data $ .unwrap-or (get saved :states) nil
                 match (try-decode-map-as color-data 'app.schema/Color)
                   (:ok color)
                     match
@@ -243,7 +243,7 @@
             add-event-listener! |beforeunload $ fn (_) (persist-storage!)
             repeat! 60 persist-storage!
             match
-              storage-get $ option:unwrap-or (get config/site :storage-key) |color-pad
+              storage-get $ .unwrap-or (get config/site :storage-key) |color-pad
               (:some raw)
                 match (try-parse-cirru-edn raw)
                   (:ok parsed)
@@ -264,15 +264,15 @@
             :features $ #{} :js-ffi
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def mount-target
-            option:unwrap $ respo.ffi.browser/query-selector |.app
+            .unwrap $ respo.ffi.browser/query-selector |.app
           :examples $ []
           :schema $ :: 'respo.dom/DomElement
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             storage-set!
-              option:unwrap-or (get config/site :storage-key) |color-pad
+              .unwrap-or (get config/site :storage-key) |color-pad
               format-cirru-edn $ let
-                  store $ app.schema/read-store $ option:unwrap (get @*reel :store)
+                  store $ app.schema/read-store $ .unwrap (get @*reel :store)
                   color store.:color
                 {} (:states store.:states)
                   :color $ {} (:h color.:h) (:s color.:s) (:l color.:l)
@@ -311,7 +311,7 @@
             :features $ #{} :js-ffi
         'ssr? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def ssr?
-            option:some? $ js-ffi.browser/query-selector |meta.respo-ssr
+            .some? $ js-ffi.browser/query-selector |meta.respo-ssr
           :examples $ []
           :schema $ :: 'Bool
       :ns $ %{} 'NsEntry (:doc |)
@@ -345,14 +345,14 @@
                     fields $ .to-map color
                   Color :h
                     decode-map-as
-                      option:unwrap $ get fields :h
+                      .unwrap $ get fields :h
                       , 'Number
                     , :s
                       decode-map-as
-                        option:unwrap $ get fields :s
+                        .unwrap $ get fields :s
                         , 'Number
                       , :l $ decode-map-as
-                        option:unwrap $ get fields :l
+                        .unwrap $ get fields :l
                         , 'Number
                 _ other $ raise |Expected-Color
               decode-map-as value 'app.schema/Color
@@ -367,10 +367,10 @@
                     fields $ .to-map current
                     normalized $ Store :states
                       decode-map-as
-                        option:unwrap $ get fields :states
+                        .unwrap $ get fields :states
                         :: 'Map 'Tag 'Dynamic
                       , :color $ read-color
-                        option:unwrap $ get fields :color
+                        .unwrap $ get fields :color
                   if (= current normalized) current normalized
                 _ other $ raise |Expected-Store
               raise |Expected-Store

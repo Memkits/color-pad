@@ -9,8 +9,8 @@ Demo: https://r.tiye.me/Memkits/color-pad/
 ### Development
 
 使用已发布的配对 Calcit/procs **0.30.1**、Caps 0.1.1、Node.js 24
-和 Yarn 4.18.0。模块使用正式 Reel 0.6.41、Respo 0.16.124、
-UI 0.8.0 和 js-ffi 0.2.5。升级时同步安装整张依赖图并重新生成 JS，
+和 Yarn 4.18.0。模块使用正式 Reel 0.6.42、Respo 0.16.126、
+UI 0.8.1 和 js-ffi 0.2.6。升级时同步安装整张依赖图并重新生成 JS，
 不能沿用旧 alpha runtime 或模块缓存；原存档 key、Map 格式和部署路径不变。
 
 选色、百分制 HSL、复制提示、原存储 key 和 Map 存档格式保持不变。
@@ -19,6 +19,11 @@ UI 0.8.0 和 js-ffi 0.2.5。升级时同步安装整张依赖图并重新生成 
 开放的状态值和回调边界仍保留显式 Dynamic；本轮没有新增 unsafe 或放宽质量预算。
 复制入口校验库返回的真实 Bool：成功显示 `Copied` 并延时清除，失败显示 `Copy failed`，
 不再把一次点击当成复制成功。新增提示状态对旧存档缺省为 false，无需转换存档。
+
+公开调用写法改为 `.unwrap-or`、`.unwrap`、`.some?`、`.merge`，仅替换调用头；
+原参数、默认值、HSL 计算、复制回调、存档协议、HUD 和测试不变。
+坏存档恢复失败后仍可能被自动保存覆盖，见 [#18](https://github.com/Memkits/color-pad/issues/18)；
+本轮写法迁移未修复该原有风险，不应当作坏存档保护已验收。
 
 ```bash
 caps --strict --ci
