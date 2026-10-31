@@ -1,31 +1,18 @@
+# Color Pad
 
-Color Pad
-----
+用于选择百分制 HSL 颜色并复制颜色文本的工具。[Demo](https://r.tiye.me/Memkits/color-pad/)
 
-> Simple tool for deciding colors.
+## 使用者影响
 
-Demo: https://r.tiye.me/Memkits/color-pad/
+本分支使用正式 **Calcit / @calcit/procs 0.32.1**、Caps 0.1.1、Node 24 和 Yarn 4.18.0。升级后重启开发服务并刷新页面，不混用旧 JS runtime。
 
-### Development
+选色、百分制 HSL、复制成功/失败提示、原 color-pad 存储键及 Map 存档格式保持。正常存档先恢复，再启用原60秒和离页保存；若解析或结构检查失败，保留原文并暂停自动保存，控制台输出恢复失败信息。修正存档并重新载入后恢复自动保存，不增加自动修复或丢弃坏存档的入口。
 
-使用已发布的配对 Calcit/procs **0.30.1**、Caps 0.1.1、Node.js 24
-和 Yarn 4.18.0。模块使用正式 Reel 0.6.42、Respo 0.16.126、
-UI 0.8.1 和 js-ffi 0.2.6。升级时同步安装整张依赖图并重新生成 JS，
-不能沿用旧 alpha runtime 或模块缓存；原存档 key、Map 格式和部署路径不变。
+复制仍以 copy-text-to-clipboard 返回的真实 Bool 决定显示 Copied 或 Copy failed，成功提示按原延时清除；不把点击当作复制成功。
 
-选色、百分制 HSL、复制提示、原存储 key 和 Map 存档格式保持不变。
-外部存档和 Reel 回放值通过真实解码进入 Store/Color，非法颜色不再由静态断言冒充 Number；
-根状态缺少 cursor 时使用空游标，复制提示写回根状态。DOM 挂载复用 Respo 的 typed selector。
-开放的状态值和回调边界仍保留显式 Dynamic；本轮没有新增 unsafe 或放宽质量预算。
-复制入口校验库返回的真实 Bool：成功显示 `Copied` 并延时清除，失败显示 `Copy failed`，
-不再把一次点击当成复制成功。新增提示状态对旧存档缺省为 false，无需转换存档。
+## 开发与验证
 
-公开调用写法改为 `.unwrap-or`、`.unwrap`、`.some?`、`.merge`，仅替换调用头；
-原参数、默认值、HSL 计算、复制回调、存档协议、HUD 和测试不变。
-坏存档恢复失败后仍可能被自动保存覆盖，见 [#18](https://github.com/Memkits/color-pad/issues/18)；
-本轮写法迁移未修复该原有风险，不应当作坏存档保护已验收。
-
-```bash
+```sh
 caps --strict --ci
 yarn install --immutable
 caps verify --toolchain
@@ -37,31 +24,20 @@ node --test scripts/color-pad-regression.test.mjs
 yarn dev
 ```
 
-Build and dev compile Calcit once before starting Vite. To keep generated JS
-updated while editing Calcit, run `calcit calcit.cirru -w` in another terminal.
-`VITE_BASE_URL` selects the build's asset base, defaulting to `./` locally.
+另开终端运行 calcit calcit.cirru -w 监听修改。仅维护 calcit.cirru / deps.cirru，通过 Calcit CLI 修改 Snapshot，不恢复 compact.cirru/package.cirru，不提交 js-out/dist。新解析 npm 包至少发布60分钟，无单包例外；原锁文件使用 immutable 安装。
 
-CI 保留原有颜色/嵌套状态测试，在存档读取定义附带一项旧 Map 存档往返回归；
-现有 Node 测试通过 Respo 的 ChildPair/RenderNode 读取子节点，颜色业务断言不变。
-不增加独立检查脚本或额外 COS 验证。
+直接模块为已发布正式 Reel0.7.0、Respo0.17.1、UI0.9.0、js-ffi0.2.9，传递 Router 仍使用已发布0.9.0-alpha.4，不改为hash或未发布版本。
 
-Use only `calcit.cirru` and `deps.cirru`; the retired `compact.cirru` and
-`package.cirru` snapshots must not be restored. CI checks their absence.
+本轮由官方 formatter 转换1处旧类型形式，并用带 Enum schema 的代表定义绑定入口 dispatch-op 槽。该值不会派发，不是新名义业务 Op；现有 wire/updater、Color/Store 解码和失败行为保留。除启动时存档/保存顺序外，颜色、复制与持久化格式逻辑保持，原3项 native 和5项 Node 回归保留。不新增验证脚本、框架或类型预算。
 
-### Frontend deployment
+## 前端部署
 
-The workflow builds only the frontend `dist/` assets. It uploads and publicly
-verifies them with the formal COS action v1.2.0's built-in HTML reference and
-public-content verification, using
-`Memkits/color-pad/pr/<number>/<run-id>/<attempt>/` for pull requests and
-`Memkits/color-pad/` for `main`. Vite uses the corresponding CDN URL as its
-base path. The existing production rsync destination remains
-`rsync-user@tiye.me:/web-assets/repo/Memkits/color-pad`; the COS migration does
-not change any server-side deployment path or upload server code.
+VITE_BASE_URL 控制资源路径，本地默认 ./。COS 上传仅 dist/，main 使用 Memkits/color-pad/，PR 使用独立 PR/run/attempt 前缀；COS action v1.2.0 自身验证 HTML 引用和公开内容，不叠加脚本。服务器目录仍为 /web-assets/repo/Memkits/color-pad，PR 不运行生产 rsync。
 
-See the [Respo Calcit workflow](https://github.com/calcit-lang/respo-calcit-workflow)
-for the shared deployment pattern.
+Action 使用与原已审查提交对应的精确正式 tag；按既定维护策略接受 tag 可移动的风险。原权限、凭据条件和部署范围保持，不添加安全规则忽略配置。
 
-### License
+模板：[respo-calcit-workflow](https://github.com/calcit-lang/respo-calcit-workflow)。
+
+## License
 
 MIT
