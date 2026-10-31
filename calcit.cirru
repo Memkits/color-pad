@@ -6,7 +6,7 @@
     {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/ |respo-ui.calcit/ |reel.calcit/
-      :type-slots $ {}
+      :type-slots $ {} $ :dispatch-op |app.schema/DispatchOp
   :files $ {}
     'app.comp.color-pad $ %{} 'FileEntry
       :defs $ {}
@@ -24,9 +24,7 @@
                 =< 32 nil
                 comp-color-square states color
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] (:: 'Map 'Tag 'Dynamic) 'app.schema/Color
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (Map Tag Dynamic) app.schema/Color (-> respo.schema/Component) (:features :js-ffi)
         'comp-color-square $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-color-square (states color)
             let
@@ -64,9 +62,7 @@
                       .unwrap-or (get state :copy-failed?) false
                       , "|Copy failed" |Copied
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] (:: 'Map 'Tag 'Dynamic) 'app.schema/Color
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (Map Tag Dynamic) app.schema/Color (-> respo.schema/Component) (:features :js-ffi)
         'comp-hundred $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-hundred (color letter)
             let
@@ -108,18 +104,14 @@
                               fn (e d!)
                                 d! $ :: :color letter current-weight
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] 'app.schema/Color 'Tag
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn app.schema/Color Tag (-> respo.schema/Component) (:features :js-ffi)
         'hsl100 $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn hsl100 (h100 s l)
             hsl
               round $ * 3.6 h100
               , s l
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'Number 'Number 'Number
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Number Number Number (-> String) (:features :js-ffi)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.color-pad
           :require
@@ -145,9 +137,7 @@
                 comp-reel (>> states :reel) reel $ {}
                 comp-inspect |color color $ {} (:bottom 0) (:left 0)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] $ :: 'Map 'Tag 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (Map Tag Dynamic) (-> respo.schema/Component) (:features :js-ffi)
         'comp-repo-entry $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-repo-entry ()
             a
@@ -157,8 +147,7 @@
                 :target |_blank
               <> "|Color Pad"
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ []
+          :schema $ quote $ Fn (-> respo.schema/Component)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.container
           :require (respo-ui.core :as ui)
@@ -172,12 +161,12 @@
           :code $ quote $ def dev?
             = |dev $ .unwrap-or (get-env |mode) |release
           :examples $ []
-          :schema $ :: 'Bool
+          :schema $ quote Bool
         'site $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def site
             {} (:dev-ui |http://localhost:8100/main.css) (:release-ui |http://cdn.tiye.me/favored-fonts/main.css) (:cdn-url |https://cos-sh.tiye.me/Memkits/color-pad/) (:cdn-folder |tiye.me:cdn/color-pad) (:title "|Color Pad") (:icon |http://cdn.tiye.me/logo/mvc-works.png) (:storage-key |color-pad) (:upload-folder |tiye.me:repo/Memkits/color-pad/)
           :examples $ []
-          :schema $ :: 'Map 'Tag 'String
+          :schema $ quote $ Map Tag String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.config
     'app.main $ %{} 'FileEntry
@@ -186,7 +175,7 @@
           :code $ quote $ defref *reel
             -> reel-schema/reel (assoc :base schema/store) (assoc :store schema/store)
           :examples $ []
-          :schema $ :: 'Ref $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Ref (Map Tag Dynamic)
         'decode-saved-store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn decode-saved-store (data)
             if (map? data)
@@ -204,9 +193,8 @@
                   (:err _) (Option :none)
               Option :none
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'Dynamic
-            :return $ :: 'Option 'app.schema/Store
+          :schema $ quote $ Fn Dynamic
+            -> $ Option app.schema/Store
           :tests $ [] $ %{} 'TestEntry (:name |legacy-map-save-roundtrip)
             :code $ quote $ let
                 saved $ {}
@@ -224,14 +212,12 @@
             reset! *reel $ reel-updater app.updater/update-wire-store @*reel op
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'Enum
+          :schema $ quote $ Fn Enum (-> Unit)
         'dispatch-wire! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch-wire! (op)
             if (enum? op) (dispatch! op) (raise |Expected-Enum-operation)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'Dynamic
+          :schema $ quote $ Fn Dynamic (-> Unit)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -240,33 +226,34 @@
             render-app! render!
             add-watch! *reel :changes $ fn (r p) (render-app! render!)
             listen-devtools! |a dispatch-wire!
-            add-event-listener! |beforeunload $ fn (_) (persist-storage!)
-            repeat! 60 persist-storage!
-            match
-              storage-get $ .unwrap-or (get config/site :storage-key) |color-pad
-              (:some raw)
-                match (try-parse-cirru-edn raw)
-                  (:ok parsed)
-                    match (decode-saved-store parsed)
-                      (:some restored)
-                        do
-                          dispatch! $ :: :hydrate-storage restored
-                          , &unit
-                      (:none) &unit
-                  (:err message)
-                    do (println |Storage-migration-failed: message) &unit
-              (:none) &unit
+            let
+                restored? $ match
+                  storage-get $ .unwrap-or (get config/site :storage-key) |color-pad
+                  (:some raw)
+                    match (try-parse-cirru-edn raw)
+                      (:ok parsed)
+                        match (decode-saved-store parsed)
+                          (:some restored)
+                            do
+                              dispatch! $ :: :hydrate-storage restored
+                              , true
+                          (:none)
+                            do (println |Storage-shape-invalid:-automatic-save-paused) false
+                      (:err message)
+                        do (println |Storage-migration-failed: message) false
+                  (:none) true
+              when restored?
+                add-event-listener! |beforeunload $ fn (_) (persist-storage!)
+                repeat! 60 persist-storage!
             println "|App started."
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def mount-target
             .unwrap $ respo.ffi.browser/query-selector |.app
           :examples $ []
-          :schema $ :: 'respo.dom/DomElement
+          :schema $ quote respo.dom/DomElement
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             storage-set!
@@ -277,43 +264,38 @@
                 {} (:states store.:states)
                   :color $ {} (:h color.:h) (:s color.:s) (:l color.:l)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! () (clear-cache!)
             reset! *reel $ decode-map-as (refresh-reel @*reel schema/store app.updater/update-wire-store) (:: 'Map 'Tag 'Dynamic)
             println "|Code updated."
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
+          :schema $ quote $ Fn (-> Unit)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! (renderer)
             renderer mount-target (comp-container @*reel) dispatch-wire!
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ [] 'respo.dom/DomElement 'respo.schema/Component $ :: 'Fn
-                  {} (:return 'Unit)
-                    :args $ [] 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn
+            Fn respo.dom/DomElement respo.schema/Component
+              Fn Dynamic $ -> Unit
+              -> Unit
+            -> Unit
+            :features :js-ffi
         'repeat! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn repeat! (duration cb)
             js-ffi.browser/set-interval! cb $ * 1000 duration
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'Number $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Number
+            Fn $ -> Unit
+            -> Unit
+            :features :js-ffi
         'ssr? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def ssr?
             .some? $ js-ffi.browser/query-selector |meta.respo-ssr
           :examples $ []
-          :schema $ :: 'Bool
+          :schema $ quote Bool
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.main
           :require
@@ -330,13 +312,19 @@
         'Color $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct Color (:h 'Number) (:s 'Number) (:l 'Number)
           :examples $ []
-          :schema $ :: 'StructDef
+          :schema $ quote StructDef
+        'DispatchOp $ %{} 'CodeEntry
+          :doc "|为路径式 dispatch-op 槽声明现有原始 Enum 合同；代表值不会派发，不是新的名义业务 Op。实际操作继续经过原 wire/updater 解码。"
+          :code $ quote $ def DispatchOp
+            :: :states ([]) ({})
+          :examples $ []
+          :schema $ quote Enum
         'Store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct Store
-            :states $ :: 'Map 'Tag 'Dynamic
+            :states $ quote $ Map Tag Dynamic
             :color 'app.schema/Color
           :examples $ []
-          :schema $ :: 'StructDef
+          :schema $ quote StructDef
         'read-color $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-color (value)
             if (struct? value)
@@ -357,8 +345,7 @@
                 _ other $ raise |Expected-Color
               decode-map-as value 'app.schema/Color
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'app.schema/Color)
-            :args $ [] 'Dynamic
+          :schema $ quote $ Fn Dynamic (-> app.schema/Color)
         'read-store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-store (value)
             if (struct? value)
@@ -375,13 +362,12 @@
                 _ other $ raise |Expected-Store
               raise |Expected-Store
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'app.schema/Store)
-            :args $ [] 'Dynamic
+          :schema $ quote $ Fn Dynamic (-> app.schema/Store)
         'store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def store
             Store :states ({}) :color $ Color :h 67 :s 67 :l 84
           :examples $ []
-          :schema $ :: 'app.schema/Store
+          :schema $ quote app.schema/Store
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.schema
     'app.updater $ %{} 'FileEntry
@@ -392,8 +378,7 @@
               updater (app.schema/read-store store) op (decode-map-as op-id 'String) (decode-map-as op-time 'Number)
               raise |Expected-Enum-operation
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'app.schema/Store)
-            :args $ [] 'Dynamic 'Dynamic 'Dynamic 'Dynamic
+          :schema $ quote $ Fn Dynamic Dynamic Dynamic Dynamic (-> app.schema/Store)
         'updater $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn updater (store op op-id op-time)
             match op
@@ -422,8 +407,7 @@
               (:hydrate-storage data) (app.schema/read-store data)
               _ $ do (println "|Unknown op:" op) store
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'app.schema/Store)
-            :args $ [] 'app.schema/Store 'Enum 'String 'Number
+          :schema $ quote $ Fn app.schema/Store Enum String Number (-> app.schema/Store)
           :tests $ []
             %{} 'TestEntry (:name |color-channel)
               :code $ quote $ let
