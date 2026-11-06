@@ -17,52 +17,59 @@
               div
                 {} $ :style ui/row
                 comp-hundred color :h
-                =< 32 nil
+                space-x 32
                 comp-hundred color :l
-                =< 32 nil
+                space-x 32
                 comp-hundred color :s
-                =< 32 nil
+                space-x 32
                 comp-color-square states color
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) app.schema/Color (-> respo.schema/Component) (:features :js-ffi)
+          :schema $ quote $ Fn respo.schema/States app.schema/Color (-> respo.schema/Component) (:features :js-ffi)
         'comp-color-square $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-color-square (states color)
             let
                 cursor $ decode-map-as
                   .unwrap-or (get states :cursor) ([])
-                  :: 'List 'Dynamic
+                  List respo.schema/CoordKey
                 state $ decode-map-as
                   .unwrap-or (get states :data)
                     {} $ :hint? false
-                  :: 'Map 'Tag 'Bool
+                  Map Tag Bool
                 color-text $ hsl100 color.:h color.:s color.:l
               div
                 {}
                   :style $ .merge ui/center $ {} (:width 400) (:height 400) (:background-color color-text) (:cursor :pointer) (:position :relative)
                   :on-click $ fn (e d!)
+                    hint-fn $ Fn respo.schema/RespoEvent
+                      Fn AnyEnum $ -> Unit
+                      -> Unit
+                      :features :js-ffi
                     let
                         copied? $ expect-bool |copy-text-to-clipboard $ copy! color-text
                         next-state $ assoc (assoc state :hint? copied?) :copy-failed? $ not copied?
-                      d! $ :: :states cursor next-state
-                      when copied? $ js/setTimeout
-                        fn () $ d! $ :: :states cursor (assoc next-state :hint? false)
+                      d! $ app.schema/Op :states cursor next-state
+                      when copied? $ js-ffi.browser/set-timeout!
+                        fn ()
+                          hint-fn $ Fn $ -> Unit
+                          d! $ app.schema/Op :states cursor $ assoc next-state :hint? false
                         , 1200
                       , &unit
                 <> color-text $ {} (:font-family ui/font-code) (:font-size 24)
                   :color $ if
                     > (:l color) 50
                     , :black :white
-                when
+                if
                   or
                     .unwrap-or (get state :hint?) false
                     .unwrap-or (get state :copy-failed?) false
-                  div
+                  Option :some $ div
                     {} $ :style $ {} (:position :absolute) (:left 8) (:top -20) (:font-size 14) (:font-family ui/font-fancy)
                     <> $ if
                       .unwrap-or (get state :copy-failed?) false
                       , "|Copy failed" |Copied
+                  Option :none
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) app.schema/Color (-> respo.schema/Component) (:features :js-ffi)
+          :schema $ quote $ Fn respo.schema/States app.schema/Color (-> respo.schema/Component) (:features :js-ffi)
         'comp-hundred $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-hundred (color letter)
             let
@@ -87,7 +94,11 @@
                             :style $ .merge ui/center $ {} (:width 40) (:height 40) (:background-color computed-color) (:cursor :pointer) (:border-radius |0px)
                             :on $ {} $ :mouseenter
                               fn (e d!)
-                                d! $ :: :color letter current-weight
+                                hint-fn $ Fn respo.schema/RespoEvent
+                                  Fn AnyEnum $ -> Unit
+                                  -> Unit
+                                  :features :js-ffi
+                                d! $ app.schema/Op :color letter current-weight
                   list-> ({})
                     -> (range 10)
                       map $ fn (i)
@@ -102,7 +113,11 @@
                             :style $ .merge ui/center $ {} (:width 40) (:height 40) (:background-color computed-color) (:cursor :pointer) (:border-radius |0px)
                             :on $ {} $ :mouseenter
                               fn (e d!)
-                                d! $ :: :color letter current-weight
+                                hint-fn $ Fn respo.schema/RespoEvent
+                                  Fn AnyEnum $ -> Unit
+                                  -> Unit
+                                  :features :js-ffi
+                                d! $ app.schema/Op :color letter current-weight
           :examples $ []
           :schema $ quote $ Fn app.schema/Color Tag (-> respo.schema/Component) (:features :js-ffi)
         'hsl100 $ %{} 'CodeEntry (:doc |)
@@ -118,7 +133,7 @@
             respo-ui.core :refer $ hsl
             respo-ui.core :as ui
             respo.core :refer $ defcomp list-> <> div
-            respo.comp.space :refer $ =<
+            respo.comp.space :refer $ space-x
             |copy-text-to-clipboard :default copy!
             js-ffi.contract :refer $ expect-bool
     'app.comp.container $ %{} 'FileEntry
@@ -126,7 +141,7 @@
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (reel)
             let
-                store $ app.schema/read-store $ .unwrap (get reel :store)
+                store $ :store reel
                 states store.:states
                 color store.:color
               div
@@ -134,10 +149,10 @@
                   {} $ :background-color :transparent
                 comp-color-pad states color
                 comp-repo-entry
-                comp-reel (>> states :reel) reel $ {}
+                comp-typed-reel (>> states :reel) reel $ {}
                 comp-inspect |color color $ {} (:bottom 0) (:left 0)
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) (-> respo.schema/Component) (:features :js-ffi)
+          :schema $ quote $ Fn (reel.typed/State app.schema/Op app.schema/Store) (-> respo.schema/Component) (:features :js-ffi)
         'comp-repo-entry $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-repo-entry ()
             a
@@ -152,7 +167,7 @@
         :code $ quote $ ns app.comp.container
           :require (respo-ui.core :as ui)
             respo.core :refer $ defcomp >> <> div a
-            reel.comp.reel :refer $ comp-reel
+            reel.comp.reel :refer $ comp-typed-reel
             app.comp.color-pad :refer $ comp-color-pad
             respo.comp.inspect :refer $ comp-inspect
     'app.config $ %{} 'FileEntry
@@ -173,20 +188,20 @@
       :defs $ {}
         '*reel $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *reel
-            -> reel-schema/reel (assoc :base schema/store) (assoc :store schema/store)
+            reel.typed/State :base schema/store :store schema/store :records ([]) :pointer (Option :none) :stopped? false :display? false :merged? false
           :examples $ []
-          :schema $ quote $ Ref (Map Tag Dynamic)
+          :schema $ quote $ Ref (reel.typed/State app.schema/Op app.schema/Store)
         'decode-saved-store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn decode-saved-store (data)
             if (map? data)
               let
-                  saved $ decode-map-as data $ :: 'Map 'Tag 'Dynamic
+                  saved $ decode-map-as data $ Map Tag Dynamic
                   color-data $ .unwrap-or (get saved :color) nil
                   states-data $ .unwrap-or (get saved :states) nil
                 match (try-decode-map-as color-data 'app.schema/Color)
                   (:ok color)
                     match
-                      try-decode-map-as states-data $ :: 'Map 'Tag 'Dynamic
+                      try-decode-map-as states-data $ Map Tag Dynamic
                       (:ok states)
                         Option :some $ schema/Store :states states :color color
                       (:err _) (Option :none)
@@ -209,23 +224,25 @@
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             when config/dev? $ println |Dispatch: op
-            reset! *reel $ reel-updater app.updater/update-wire-store @*reel op
+            match (reel.typed/decode-control op)
+              (:some control)
+                reset! *reel $ reel.typed/apply-control app.updater/updater @*reel control
+              (:none)
+                match (try-decode-map-as op app.schema/Op)
+                  (:ok action)
+                    reset! *reel $ reel.typed/record-op app.updater/updater @*reel action (generate-id!) (js-ffi.shared/now-ms)
+                  (:err _) (println "|Unknown op:" op)
             , &unit
           :examples $ []
-          :schema $ quote $ Fn Enum (-> Unit)
-        'dispatch-wire! $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn dispatch-wire! (op)
-            if (enum? op) (dispatch! op) (raise |Expected-Enum-operation)
-          :examples $ []
-          :schema $ quote $ Fn Dynamic (-> Unit)
+          :schema $ quote $ Fn AnyEnum (-> Unit) (:features :js-ffi)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
             if config/dev? $ load-console-formatter!
-            if ssr? $ render-app! realize-ssr!
-            render-app! render!
-            add-watch! *reel :changes $ fn (r p) (render-app! render!)
-            listen-devtools! |a dispatch-wire!
+            if ssr? $ realize-ssr! (mount-target) (comp-container @*reel) dispatch!
+            render-app!
+            add-watch! *reel :changes $ fn (r p) (render-app!)
+            listen-devtools! |a dispatch!
             let
                 restored? $ match
                   storage-get $ .unwrap-or (get config/site :storage-key) |color-pad
@@ -235,7 +252,7 @@
                         match (decode-saved-store parsed)
                           (:some restored)
                             do
-                              dispatch! $ :: :hydrate-storage restored
+                              dispatch! $ schema/Op :hydrate-storage restored
                               , true
                           (:none)
                             do (println |Storage-shape-invalid:-automatic-save-paused) false
@@ -250,16 +267,16 @@
           :examples $ []
           :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'mount-target $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def mount-target
+          :code $ quote $ defn mount-target ()
             .unwrap $ respo.ffi.browser/query-selector |.app
           :examples $ []
-          :schema $ quote respo.dom/DomElement
+          :schema $ quote $ Fn (-> respo.dom/DomElement) (:features :js-ffi)
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             storage-set!
               .unwrap-or (get config/site :storage-key) |color-pad
               format-cirru-edn $ let
-                  store $ app.schema/read-store $ .unwrap (get @*reel :store)
+                  store $ :store @*reel
                   color store.:color
                 {} (:states store.:states)
                   :color $ {} (:h color.:h) (:s color.:s) (:l color.:l)
@@ -267,21 +284,18 @@
           :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! () (clear-cache!)
-            reset! *reel $ decode-map-as (refresh-reel @*reel schema/store app.updater/update-wire-store) (:: 'Map 'Tag 'Dynamic)
+            reset! *reel $ reel.typed/refresh app.updater/updater @*reel schema/store
             println "|Code updated."
             , &unit
           :examples $ []
           :schema $ quote $ Fn (-> Unit)
         'render-app! $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn render-app! (renderer)
-            renderer mount-target (comp-container @*reel) dispatch-wire!
+          :code $ quote $ defn render-app! ()
+            render-with! (mount-target)
+              fn () $ comp-container @*reel
+              , dispatch!
           :examples $ []
-          :schema $ quote $ Fn
-            Fn respo.dom/DomElement respo.schema/Component
-              Fn Dynamic $ -> Unit
-              -> Unit
-            -> Unit
-            :features :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'repeat! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn repeat! (duration cb)
             js-ffi.browser/set-interval! cb $ * 1000 duration
@@ -299,18 +313,16 @@
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.main
           :require
-            respo.core :refer $ render! clear-cache! realize-ssr!
+            respo.core :refer $ render-with! clear-cache! realize-ssr!
             app.comp.container :refer $ comp-container
             app.schema :as schema
             reel.util :refer $ listen-devtools!
-            reel.core :refer $ reel-updater refresh-reel
-            reel.schema :as reel-schema
             app.config :as config
             js-ffi.browser :refer $ storage-get storage-set! add-event-listener!
     'app.schema $ %{} 'FileEntry
       :defs $ {}
         'Color $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defstruct Color (:h 'Number) (:s 'Number) (:l 'Number)
+          :code $ quote $ defstruct Color (:h Number) (:s Number) (:l Number)
           :examples $ []
           :schema $ quote StructDef
         'DispatchOp $ %{} 'CodeEntry
@@ -318,51 +330,20 @@
           :code $ quote $ def DispatchOp
             :: :states ([]) ({})
           :examples $ []
-          :schema $ quote Enum
+          :schema $ quote AnyEnum
+        'Op $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defenum Op
+            :states (List respo.schema/CoordKey) Dynamic
+            :color Tag Number
+            :hydrate-storage app.schema/Store
+          :examples $ []
+          :schema $ quote EnumDef
         'Store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct Store
-            :states $ quote $ Map Tag Dynamic
-            :color 'app.schema/Color
+            :states $ Map Tag Dynamic
+            :color app.schema/Color
           :examples $ []
           :schema $ quote StructDef
-        'read-color $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn read-color (value)
-            if (struct? value)
-              struct-match value
-                Color color $ let
-                    fields $ .to-map color
-                  Color :h
-                    decode-map-as
-                      .unwrap $ get fields :h
-                      , 'Number
-                    , :s
-                      decode-map-as
-                        .unwrap $ get fields :s
-                        , 'Number
-                      , :l $ decode-map-as
-                        .unwrap $ get fields :l
-                        , 'Number
-                _ other $ raise |Expected-Color
-              decode-map-as value 'app.schema/Color
-          :examples $ []
-          :schema $ quote $ Fn Dynamic (-> app.schema/Color)
-        'read-store $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn read-store (value)
-            if (struct? value)
-              struct-match value
-                Store current $ let
-                    fields $ .to-map current
-                    normalized $ Store :states
-                      decode-map-as
-                        .unwrap $ get fields :states
-                        :: 'Map 'Tag 'Dynamic
-                      , :color $ read-color
-                        .unwrap $ get fields :color
-                  if (= current normalized) current normalized
-                _ other $ raise |Expected-Store
-              raise |Expected-Store
-          :examples $ []
-          :schema $ quote $ Fn Dynamic (-> app.schema/Store)
         'store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def store
             Store :states ({}) :color $ Color :h 67 :s 67 :l 84
@@ -371,55 +352,46 @@
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.schema
     'app.updater $ %{} 'FileEntry
-      :defs $ {}
-        'update-wire-store $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn update-wire-store (store op op-id op-time)
-            if (enum? op)
-              updater (app.schema/read-store store) op (decode-map-as op-id 'String) (decode-map-as op-time 'Number)
-              raise |Expected-Enum-operation
-          :examples $ []
-          :schema $ quote $ Fn Dynamic Dynamic Dynamic Dynamic (-> app.schema/Store)
-        'updater $ %{} 'CodeEntry (:doc |)
+      :defs $ {} $ 'updater
+        %{} 'CodeEntry (:doc |)
           :code $ quote $ defn updater (store op op-id op-time)
             match op
               (:states cursor data)
                 app.schema/Store :states
                   decode-map-as
-                    respo.cursor/update-state-tree (:states store)
-                      decode-map-as cursor $ :: 'List 'Dynamic
-                      , data
-                    :: 'Map 'Tag 'Dynamic
+                    respo.cursor/update-state-tree (:states store) cursor data
+                    Map Tag Dynamic
                   , :color $ :color store
               (:color channel value)
                 app.schema/Store :states (:states store) :color $ match channel
-                  :h $ app.schema/Color :h (decode-map-as value 'Number) :s
+                  :h $ app.schema/Color :h value :s
                     :s $ :color store
                     , :l $ :l (:color store)
                   :s $ app.schema/Color :h
                     :h $ :color store
-                    , :s (decode-map-as value 'Number) :l $ :l (:color store)
+                    , :s value :l $ :l (:color store)
                   :l $ app.schema/Color :h
                     :h $ :color store
                     , :s
                       :s $ :color store
-                      , :l $ decode-map-as value 'Number
+                      , :l value
                   _ $ :color store
-              (:hydrate-storage data) (app.schema/read-store data)
-              _ $ do (println "|Unknown op:" op) store
+              (:hydrate-storage data) data
           :examples $ []
-          :schema $ quote $ Fn app.schema/Store Enum String Number (-> app.schema/Store)
+          :schema $ quote $ Fn app.schema/Store app.schema/Op String Number (-> app.schema/Store)
           :tests $ []
             %{} 'TestEntry (:name |color-channel)
               :code $ quote $ let
-                  updated $ updater app.schema/store (:: :color :h 42) |test 0
+                  updated $ updater app.schema/store (app.schema/Op :color :h 42) |test 0
                 assert= 42 $ :h $ :color updated
               :tags $ #{} :unit
             %{} 'TestEntry (:name |states-root)
               :code $ quote $ let
                   updated $ updater app.schema/store
-                    :: :states ([]) :ready
+                    app.schema/Op :states ([]) :ready
                     , |test 0
-                assert= :ready $ respo.cursor/get-state-at (:states updated) ([] :data)
+                assert= (Option :some :ready)
+                  respo.cursor/get-state-at (:states updated) ([] :data)
               :tags $ #{} :unit
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
