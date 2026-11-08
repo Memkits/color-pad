@@ -16,11 +16,11 @@
               {} $ :style $ {} (:padding 16)
               div
                 {} $ :style ui/row
-                comp-hundred color :h
+                comp-hundred color $ app.schema/Channel :h
                 space-x 32
-                comp-hundred color :l
+                comp-hundred color $ app.schema/Channel :l
                 space-x 32
-                comp-hundred color :s
+                comp-hundred color $ app.schema/Channel :s
                 space-x 32
                 comp-color-square states color
           :examples $ []
@@ -71,9 +71,12 @@
           :examples $ []
           :schema $ quote $ Fn respo.schema/States app.schema/Color (-> respo.schema/Component) (:features :js-ffi)
         'comp-hundred $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defcomp comp-hundred (color letter)
+          :code $ quote $ defcomp comp-hundred (color channel)
             let
-                weight $ match letter (:h color.:h) (:s color.:s) (:l color.:l) (_ 0)
+                weight $ match channel
+                  (:h) color.:h
+                  (:s) color.:s
+                  (:l) color.:l
                 digit $ .rem weight 10
                 decade $ / (- weight digit) 10
               div
@@ -85,11 +88,13 @@
                       map $ fn (i)
                         [] i $ let
                             current-weight $ + digit $ * 10 i
-                            computed-color $ match letter
-                              :h $ hsl100 current-weight (:s color) (:l color)
-                              :s $ hsl100 (:h color) current-weight $ :l color
-                              :l $ hsl100 (:h color) (:s color) current-weight
-                              _ :transparent
+                            computed-color $ match channel
+                              (:h)
+                                hsl100 current-weight (:s color) (:l color)
+                              (:s)
+                                hsl100 (:h color) current-weight $ :l color
+                              (:l)
+                                hsl100 (:h color) (:s color) current-weight
                           div $ {}
                             :style $ .merge ui/center $ {} (:width 40) (:height 40) (:background-color computed-color) (:cursor :pointer) (:border-radius |0px)
                             :on $ {} $ :mouseenter
@@ -98,17 +103,19 @@
                                   Fn app.schema/Op $ -> Unit
                                   -> Unit
                                   :features :js-ffi
-                                d! $ app.schema/Op :color letter current-weight
+                                d! $ app.schema/Op :color channel current-weight
                   list-> ({})
                     -> (range 10)
                       map $ fn (i)
                         [] i $ let
                             current-weight $ + i $ * decade 10
-                            computed-color $ match letter
-                              :h $ hsl100 current-weight (:s color) (:l color)
-                              :s $ hsl100 (:h color) current-weight $ :l color
-                              :l $ hsl100 (:h color) (:s color) current-weight
-                              _ :transparent
+                            computed-color $ match channel
+                              (:h)
+                                hsl100 current-weight (:s color) (:l color)
+                              (:s)
+                                hsl100 (:h color) current-weight $ :l color
+                              (:l)
+                                hsl100 (:h color) (:s color) current-weight
                           div $ {}
                             :style $ .merge ui/center $ {} (:width 40) (:height 40) (:background-color computed-color) (:cursor :pointer) (:border-radius |0px)
                             :on $ {} $ :mouseenter
@@ -117,9 +124,9 @@
                                   Fn app.schema/Op $ -> Unit
                                   -> Unit
                                   :features :js-ffi
-                                d! $ app.schema/Op :color letter current-weight
+                                d! $ app.schema/Op :color channel current-weight
           :examples $ []
-          :schema $ quote $ Fn app.schema/Color Tag (-> respo.schema/Component) (:features :js-ffi)
+          :schema $ quote $ Fn app.schema/Color app.schema/Channel (-> respo.schema/Component) (:features :js-ffi)
         'hsl100 $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn hsl100 (h100 s l)
             hsl
@@ -318,6 +325,10 @@
             js-ffi.browser :refer $ storage-get storage-set! add-event-listener!
     'app.schema $ %{} 'FileEntry
       :defs $ {}
+        'Channel $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defenum Channel (:h) (:s) (:l)
+          :examples $ []
+          :schema $ quote EnumDef
         'Color $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct Color (:h Number) (:s Number) (:l Number)
           :examples $ []
@@ -325,7 +336,7 @@
         'Op $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defenum Op
             :states (List respo.schema/CoordKey) Dynamic
-            :color Tag Number
+            :color app.schema/Channel Number
             :hydrate-storage app.schema/Store
             :reel/toggle
             :reel/recall Number
@@ -362,18 +373,20 @@
                   , :color $ :color store
               (:color channel value)
                 app.schema/Store :states (:states store) :color $ match channel
-                  :h $ app.schema/Color :h value :s
-                    :s $ :color store
-                    , :l $ :l (:color store)
-                  :s $ app.schema/Color :h
-                    :h $ :color store
-                    , :s value :l $ :l (:color store)
-                  :l $ app.schema/Color :h
-                    :h $ :color store
-                    , :s
+                  (:h)
+                    app.schema/Color :h value :s
                       :s $ :color store
-                      , :l value
-                  _ $ :color store
+                      , :l $ :l $ :color store
+                  (:s)
+                    app.schema/Color :h
+                      :h $ :color store
+                      , :s value :l $ :l $ :color store
+                  (:l)
+                    app.schema/Color :h
+                      :h $ :color store
+                      , :s
+                        :s $ :color store
+                        , :l value
               (:hydrate-storage data) data
               _ store
           :examples $ []
@@ -381,7 +394,9 @@
           :tests $ []
             %{} 'TestEntry (:name |color-channel)
               :code $ quote $ let
-                  updated $ updater app.schema/store (app.schema/Op :color :h 42) |test 0
+                  updated $ updater app.schema/store
+                    app.schema/Op :color (app.schema/Channel :h) 42
+                    , |test 0
                 assert= 42 $ :h $ :color updated
               :tags $ #{} :unit
             %{} 'TestEntry (:name |states-root)
