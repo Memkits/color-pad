@@ -6,7 +6,7 @@
     {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/ |respo-ui.calcit/ |reel.calcit/
-      :type-slots $ {} $ :dispatch-op |app.schema/DispatchOp
+      :type-slots $ {} $ :dispatch-op 'app.schema/Op
   :files $ {}
     'app.comp.color-pad $ %{} 'FileEntry
       :defs $ {}
@@ -41,7 +41,7 @@
                   :style $ .merge ui/center $ {} (:width 400) (:height 400) (:background-color color-text) (:cursor :pointer) (:position :relative)
                   :on-click $ fn (e d!)
                     hint-fn $ Fn respo.schema/RespoEvent
-                      Fn AnyEnum $ -> Unit
+                      Fn app.schema/Op $ -> Unit
                       -> Unit
                       :features :js-ffi
                     let
@@ -95,7 +95,7 @@
                             :on $ {} $ :mouseenter
                               fn (e d!)
                                 hint-fn $ Fn respo.schema/RespoEvent
-                                  Fn AnyEnum $ -> Unit
+                                  Fn app.schema/Op $ -> Unit
                                   -> Unit
                                   :features :js-ffi
                                 d! $ app.schema/Op :color letter current-weight
@@ -114,7 +114,7 @@
                             :on $ {} $ :mouseenter
                               fn (e d!)
                                 hint-fn $ Fn respo.schema/RespoEvent
-                                  Fn AnyEnum $ -> Unit
+                                  Fn app.schema/Op $ -> Unit
                                   -> Unit
                                   :features :js-ffi
                                 d! $ app.schema/Op :color letter current-weight
@@ -196,16 +196,16 @@
             if (map? data)
               let
                   saved $ decode-map-as data $ Map Tag Dynamic
-                  color-data $ .unwrap-or (get saved :color) nil
-                  states-data $ .unwrap-or (get saved :states) nil
-                match (try-decode-map-as color-data 'app.schema/Color)
-                  (:ok color)
-                    match
-                      try-decode-map-as states-data $ Map Tag Dynamic
-                      (:ok states)
-                        Option :some $ schema/Store :states states :color color
-                      (:err _) (Option :none)
-                  (:err _) (Option :none)
+                try
+                  let
+                      color $ decode-map-as
+                        .unwrap $ get saved :color
+                        , app.schema/Color
+                      states $ decode-map-as
+                        .unwrap $ get saved :states
+                        Map Tag Dynamic
+                    Option :some $ schema/Store :states states :color color
+                  fn (_) (Option :none)
               Option :none
           :examples $ []
           :schema $ quote $ Fn Dynamic
@@ -228,13 +228,10 @@
               (:some control)
                 reset! *reel $ reel.typed/apply-control app.updater/updater @*reel control
               (:none)
-                match (try-decode-map-as op app.schema/Op)
-                  (:ok action)
-                    reset! *reel $ reel.typed/record-op app.updater/updater @*reel action (generate-id!) (js-ffi.shared/now-ms)
-                  (:err _) (println "|Unknown op:" op)
+                reset! *reel $ reel.typed/record-op app.updater/updater @*reel op (generate-id!) (js-ffi.shared/now-ms)
             , &unit
           :examples $ []
-          :schema $ quote $ Fn AnyEnum (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn app.schema/Op (-> Unit) (:features :js-ffi)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -242,7 +239,7 @@
             if ssr? $ realize-ssr! (mount-target) (comp-container @*reel) dispatch!
             render-app!
             add-watch! *reel :changes $ fn (r p) (render-app!)
-            listen-devtools! |a dispatch!
+            listen-devtools-toggle! |a $ fn () $ dispatch! (app.schema/Op :reel/toggle)
             let
                 restored? $ match
                   storage-get $ .unwrap-or (get config/site :storage-key) |color-pad
@@ -316,7 +313,7 @@
             respo.core :refer $ render-with! clear-cache! realize-ssr!
             app.comp.container :refer $ comp-container
             app.schema :as schema
-            reel.util :refer $ listen-devtools!
+            reel.util :refer $ listen-devtools-toggle!
             app.config :as config
             js-ffi.browser :refer $ storage-get storage-set! add-event-listener!
     'app.schema $ %{} 'FileEntry
@@ -325,17 +322,18 @@
           :code $ quote $ defstruct Color (:h Number) (:s Number) (:l Number)
           :examples $ []
           :schema $ quote StructDef
-        'DispatchOp $ %{} 'CodeEntry
-          :doc "|为路径式 dispatch-op 槽声明现有原始 Enum 合同；代表值不会派发，不是新的名义业务 Op。实际操作继续经过原 wire/updater 解码。"
-          :code $ quote $ def DispatchOp
-            :: :states ([]) ({})
-          :examples $ []
-          :schema $ quote AnyEnum
         'Op $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defenum Op
             :states (List respo.schema/CoordKey) Dynamic
             :color Tag Number
             :hydrate-storage app.schema/Store
+            :reel/toggle
+            :reel/recall Number
+            :reel/run
+            :reel/step
+            :reel/merge
+            :reel/reset
+            :reel/remove Number
           :examples $ []
           :schema $ quote EnumDef
         'Store $ %{} 'CodeEntry (:doc |)
@@ -377,6 +375,7 @@
                       , :l value
                   _ $ :color store
               (:hydrate-storage data) data
+              _ store
           :examples $ []
           :schema $ quote $ Fn app.schema/Store app.schema/Op String Number (-> app.schema/Store)
           :tests $ []
