@@ -62,12 +62,12 @@
                   or
                     .unwrap-or (get state :hint?) false
                     .unwrap-or (get state :copy-failed?) false
-                  Option :some $ div
+                  Some $ div
                     {} $ :style $ {} (:position :absolute) (:left 8) (:top -20) (:font-size 14) (:font-family ui/font-fancy)
                     <> $ if
                       .unwrap-or (get state :copy-failed?) false
                       , "|Copy failed" |Copied
-                  Option :none
+                  , None
           :examples $ []
           :schema $ quote $ Fn respo.schema/States app.schema/Color (-> respo.schema/Component) (:features :js-ffi)
         'comp-hundred $ %{} 'CodeEntry (:doc |)
@@ -198,9 +198,9 @@
       :defs $ {}
         '*reel $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *reel
-            reel.typed/State :base schema/store :store schema/store :records ([]) :pointer (Option :none) :stopped? false :display? false :merged? false
+            reel.typed/State :base schema/store :store schema/store :records ([]) :pointer None :stopped? false :display? false :merged? false
           :examples $ []
-          :schema $ quote $ Ref (reel.typed/State app.schema/Op app.schema/Store)
+          :schema $ quote $ Ref (reel.typed/State schema/Op schema/Store)
         'decode-saved-store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn decode-saved-store (data)
             if (map? data)
@@ -214,12 +214,12 @@
                       states $ decode-map-as
                         .unwrap $ get saved :states
                         Map Tag Dynamic
-                    Option :some $ schema/Store :states states :color color
-                  fn (_) (Option :none)
-              Option :none
+                    Some $ schema/Store :states states :color color
+                  fn (_) None
+              , None
           :examples $ []
           :schema $ quote $ Fn Dynamic
-            -> $ Option app.schema/Store
+            -> $ Option schema/Store
           :tests $ [] $ %{} 'TestEntry (:name |legacy-map-save-roundtrip)
             :code $ quote $ let
                 saved $ {}
@@ -227,7 +227,7 @@
                   :color $ {} (:h 7) (:s 67) (:l 84)
               assert=
                 decode-saved-store $ parse-cirru-edn $ format-cirru-edn saved
-                Option :some $ schema/Store :states
+                Some $ schema/Store :states
                   {} $ :cursor $ []
                   , :color $ schema/Color :h 7 :s 67 :l 84
             :tags $ #{} :unit
@@ -240,11 +240,11 @@
                 reel.typed/record-op app.updater/updater @*reel action (generate-id!) (js-ffi.shared/now-ms)
             , &unit
           :examples $ []
-          :schema $ quote $ Fn app.schema/ResolvedOp (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn schema/ResolvedOp (-> Unit) (:features :js-ffi)
         'dispatch-event! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch-event! (op) (dispatch! op)
           :examples $ []
-          :schema $ quote $ Fn app.schema/Op (-> Unit)
+          :schema $ quote $ Fn schema/Op (-> Unit)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -345,7 +345,7 @@
           :schema $ quote StructDef
         'Op $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defenum Op
-            :states (List respo.schema/CoordKey) Dynamic
+            :states (List respo.schema/CoordKey) (Map Tag Bool)
             :color app.schema/Channel Number
             :hydrate-storage app.schema/Store
           :examples $ []
@@ -364,7 +364,7 @@
           :code $ quote $ def store
             Store :states ({}) :color $ Color :h 67 :s 67 :l 84
           :examples $ []
-          :schema $ quote app.schema/Store
+          :schema $ quote Store
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.schema
     'app.updater $ %{} 'FileEntry
@@ -409,9 +409,11 @@
             %{} 'TestEntry (:name |states-root)
               :code $ quote $ let
                   updated $ updater app.schema/store
-                    app.schema/Op :states ([]) :ready
+                    app.schema/Op :states ([])
+                      {} $ :hint? true
                     , |test 0
-                assert= (Option :some :ready)
+                assert=
+                  Some $ {} $ :hint? true
                   respo.cursor/get-state-at (:states updated) ([] :data)
               :tags $ #{} :unit
       :ns $ %{} 'NsEntry (:doc |)
