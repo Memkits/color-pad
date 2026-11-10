@@ -83,10 +83,10 @@
                 {} $ :style ui/row
                 div
                   {} $ :style ui/row
-                  list-> ({})
+                  keyed-> ({})
                     -> (range 10)
                       map $ fn (i)
-                        [] i $ let
+                        keyed-element i $ let
                             current-weight $ + digit $ * 10 i
                             computed-color $ match channel
                               (:h)
@@ -104,10 +104,10 @@
                                   -> Unit
                                   :features :js-ffi
                                 d! $ app.schema/Op :color channel current-weight
-                  list-> ({})
+                  keyed-> ({})
                     -> (range 10)
                       map $ fn (i)
-                        [] i $ let
+                        keyed-element i $ let
                             current-weight $ + i $ * decade 10
                             computed-color $ match channel
                               (:h)
@@ -139,14 +139,14 @@
           :require
             respo-ui.core :refer $ hsl
             respo-ui.core :as ui
-            respo.core :refer $ defcomp list-> <> div
+            respo.core :refer $ defcomp keyed-> keyed-element <> div
             respo.comp.space :refer $ space-x
             |copy-text-to-clipboard :default copy!
             js-ffi.contract :refer $ expect-bool
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
         'comp-container $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defcomp comp-container (reel)
+          :code $ quote $ defcomp comp-container (reel on-control!)
             let
                 store $ :store reel
                 states store.:states
@@ -156,10 +156,13 @@
                   {} $ :background-color :transparent
                 comp-color-pad states color
                 comp-repo-entry
-                comp-typed-reel (>> states :reel) reel $ {}
+                comp-typed-reel (>> states :reel) reel ({}) on-control!
                 comp-inspect |color color $ {} (:bottom 0) (:left 0)
           :examples $ []
-          :schema $ quote $ Fn (reel.typed/State app.schema/Op app.schema/Store) (-> respo.schema/Component) (:features :js-ffi)
+          :schema $ quote $ Fn (reel.typed/State app.schema/Op app.schema/Store)
+            Fn reel.typed/Control $ -> Unit
+            -> respo.schema/Component
+            :features :js-ffi
         'comp-repo-entry $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-repo-entry ()
             a
@@ -231,22 +234,25 @@
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             when config/dev? $ println |Dispatch: op
-            match (reel.typed/decode-control op)
-              (:some control)
-                reset! *reel $ reel.typed/apply-control app.updater/updater @*reel control
-              (:none)
-                reset! *reel $ reel.typed/record-op app.updater/updater @*reel op (generate-id!) (js-ffi.shared/now-ms)
+            reset! *reel $ match op
+              (reel.typed/Control control) (reel.typed/apply-control app.updater/updater @*reel control)
+              (app.schema/Op action)
+                reel.typed/record-op app.updater/updater @*reel action (generate-id!) (js-ffi.shared/now-ms)
             , &unit
           :examples $ []
-          :schema $ quote $ Fn app.schema/Op (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn app.schema/ResolvedOp (-> Unit) (:features :js-ffi)
+        'dispatch-event! $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn dispatch-event! (op) (dispatch! op)
+          :examples $ []
+          :schema $ quote $ Fn app.schema/Op (-> Unit)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
             if config/dev? $ load-console-formatter!
-            if ssr? $ realize-ssr! (mount-target) (comp-container @*reel) dispatch!
+            if ssr? $ realize-ssr! (mount-target) (comp-container @*reel on-control!) dispatch-event!
             render-app!
             add-watch! *reel :changes $ fn (r p) (render-app!)
-            listen-devtools-toggle! |a $ fn () $ dispatch! (app.schema/Op :reel/toggle)
+            listen-devtools-toggle! |a $ fn () $ on-control! (reel.typed/Control :toggle)
             let
                 restored? $ match
                   storage-get $ .unwrap-or (get config/site :storage-key) |color-pad
@@ -275,6 +281,10 @@
             .unwrap $ respo.ffi.browser/query-selector |.app
           :examples $ []
           :schema $ quote $ Fn (-> respo.dom/DomElement) (:features :js-ffi)
+        'on-control! $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn on-control! (control) (dispatch! control)
+          :examples $ []
+          :schema $ quote $ Fn reel.typed/Control (-> Unit)
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             storage-set!
@@ -296,8 +306,8 @@
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
             render-with! (mount-target)
-              fn () $ comp-container @*reel
-              , dispatch!
+              fn () $ comp-container @*reel on-control!
+              , dispatch-event!
           :examples $ []
           :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'repeat! $ %{} 'CodeEntry (:doc |)
@@ -338,15 +348,12 @@
             :states (List respo.schema/CoordKey) Dynamic
             :color app.schema/Channel Number
             :hydrate-storage app.schema/Store
-            :reel/toggle
-            :reel/recall Number
-            :reel/run
-            :reel/step
-            :reel/merge
-            :reel/reset
-            :reel/remove Number
           :examples $ []
           :schema $ quote EnumDef
+        'ResolvedOp $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defunion ResolvedOp app.schema/Op reel.typed/Control
+          :examples $ []
+          :schema $ quote UnionDef
         'Store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct Store
             :states $ Map Tag Dynamic
