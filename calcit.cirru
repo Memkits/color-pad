@@ -204,33 +204,40 @@
         'decode-saved-store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn decode-saved-store (data)
             if (map? data)
-              let
-                  saved $ decode-map-as data $ Map Tag Dynamic
-                try
-                  let
-                      color $ decode-map-as
-                        .unwrap $ get saved :color
-                        , app.schema/Color
-                      states $ decode-map-as
-                        .unwrap $ get saved :states
-                        Map Tag Dynamic
-                    Some $ schema/Store :states states :color color
-                  fn (_) None
+              try
+                let
+                    saved $ decode-map-as data $ Map Tag Dynamic
+                    color $ decode-map-as
+                      .unwrap $ get saved :color
+                      , app.schema/Color
+                    states $ decode-map-as
+                      .unwrap $ get saved :states
+                      Map Tag Dynamic
+                  Some $ schema/Store :states states :color color
+                fn (_) None
               , None
           :examples $ []
-          :schema $ quote $ Fn Dynamic
+          :schema $ quote $ Fn Input
             -> $ Option schema/Store
-          :tests $ [] $ %{} 'TestEntry (:name |legacy-map-save-roundtrip)
-            :code $ quote $ let
-                saved $ {}
+            :generics Input
+          :tests $ []
+            %{} 'TestEntry (:name |legacy-map-save-roundtrip)
+              :code $ quote $ let
+                  saved $ {}
+                    :states $ {} $ :cursor ([])
+                    :color $ {} (:h 7) (:s 67) (:l 84)
+                assert=
+                  decode-saved-store $ parse-cirru-edn $ format-cirru-edn saved
+                  Some $ schema/Store :states
+                    {} $ :cursor $ []
+                    , :color $ schema/Color :h 7 :s 67 :l 84
+              :tags $ #{} :unit
+            %{} 'TestEntry (:name |rejects-non-tag-archive-key)
+              :code $ quote $ assert= None
+                decode-saved-store $ {} (|unexpected 1)
                   :states $ {} $ :cursor ([])
                   :color $ {} (:h 7) (:s 67) (:l 84)
-              assert=
-                decode-saved-store $ parse-cirru-edn $ format-cirru-edn saved
-                Some $ schema/Store :states
-                  {} $ :cursor $ []
-                  , :color $ schema/Color :h 7 :s 67 :l 84
-            :tags $ #{} :unit
+              :tags $ #{} :unit
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             when config/dev? $ println |Dispatch: op
