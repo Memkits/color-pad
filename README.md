@@ -4,7 +4,7 @@
 
 ## 使用者影响
 
-升级到正式 **Calcit / @calcit/procs 0.41.1** 后，请重新安装依赖、生成 JS 并刷新页面。
+升级到正式 **Calcit / @calcit/procs 0.42.1** 后，请重新安装依赖、生成 JS 并刷新页面。
 选色、百分制 HSL、复制反馈和原 `color-pad` Map 存档继续使用原有格式。
 
 Color Pad 使用 `State<Op, Store>`，选色和提示操作经过名义 `Op`，Reel 控制使用独立的具名回调。
