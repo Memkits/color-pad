@@ -204,17 +204,16 @@
         'decode-saved-store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn decode-saved-store (data)
             if (map? data)
-              try
-                let
-                    saved $ decode-map-as data $ Map Tag Dynamic
-                    color $ decode-map-as
-                      .unwrap $ get saved :color
-                      , app.schema/Color
-                    states $ decode-map-as
-                      .unwrap $ get saved :states
-                      Map Tag Dynamic
-                  Some $ schema/Store :states states :color color
-                fn (_) None
+              if
+                every? (.keys data) tag?
+                try
+                  Some $ decode-map-as
+                    {}
+                      :color $ .unwrap $ get data :color
+                      :states $ .unwrap $ get data :states
+                    , schema/Store
+                  fn (_) None
+                , None
               , None
           :examples $ []
           :schema $ quote $ Fn Input
@@ -223,7 +222,7 @@
           :tests $ []
             %{} 'TestEntry (:name |legacy-map-save-roundtrip)
               :code $ quote $ let
-                  saved $ {}
+                  saved $ {} (:archive-version 1)
                     :states $ {} $ :cursor ([])
                     :color $ {} (:h 7) (:s 67) (:l 84)
                 assert=
@@ -247,11 +246,11 @@
                 reel.typed/record-op app.updater/updater @*reel action (generate-id!) (js-ffi.shared/now-ms)
             , &unit
           :examples $ []
-          :schema $ quote $ Fn schema/ResolvedOp (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn schema/ResolvedOp (-> Unit) (:features :io :js-ffi :state)
         'dispatch-event! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch-event! (op) (dispatch! op)
           :examples $ []
-          :schema $ quote $ Fn schema/Op (-> Unit)
+          :schema $ quote $ Fn schema/Op (-> Unit) (:features :io :state)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -282,7 +281,7 @@
             println "|App started."
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn mount-target ()
             .unwrap $ respo.ffi.browser/query-selector |.app
@@ -291,7 +290,7 @@
         'on-control! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn on-control! (control) (dispatch! control)
           :examples $ []
-          :schema $ quote $ Fn reel.typed/Control (-> Unit)
+          :schema $ quote $ Fn reel.typed/Control (-> Unit) (:features :io :state)
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             storage-set!
@@ -302,21 +301,21 @@
                 {} (:states store.:states)
                   :color $ {} (:h color.:h) (:s color.:s) (:l color.:l)
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi :state)
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! () (clear-cache!)
             reset! *reel $ reel.typed/refresh app.updater/updater @*reel schema/store
             println "|Code updated."
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit)
+          :schema $ quote $ Fn (-> Unit) (:features :io :state)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
             render-with! (mount-target)
               fn () $ comp-container @*reel on-control!
               , dispatch-event!
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'repeat! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn repeat! (duration cb)
             js-ffi.browser/set-interval! cb $ * 1000 duration
