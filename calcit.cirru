@@ -29,10 +29,10 @@
           :code $ quote $ defcomp comp-color-square (states color)
             let
                 cursor $ decode-map-as
-                  .unwrap-or (get states :cursor) ([])
+                  .unwrap-or (&map:get states :cursor) ([])
                   List respo.schema/CoordKey
                 state $ decode-map-as
-                  .unwrap-or (get states :data)
+                  .unwrap-or (&map:get states :data)
                     {} $ :hint? false
                   Map Tag Bool
                 color-text $ hsl100 color.:h color.:s color.:l
