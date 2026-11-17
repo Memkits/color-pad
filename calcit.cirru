@@ -160,9 +160,9 @@
                 comp-inspect |color color $ {} (:bottom 0) (:left 0)
           :examples $ []
           :schema $ quote $ Fn (reel.typed/State app.schema/Op app.schema/Store)
-            Fn reel.typed/Control $ -> Unit
+            Fn reel.typed/Control (-> Unit) (:features :io :state)
             -> respo.schema/Component
-            :features :js-ffi
+            :features :io :js-ffi :state
         'comp-repo-entry $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-repo-entry ()
             a
@@ -322,7 +322,7 @@
             , &unit
           :examples $ []
           :schema $ quote $ Fn Number
-            Fn $ -> Unit
+            Fn (-> Unit) (:features :state)
             -> Unit
             :features :js-ffi
         'ssr? $ %{} 'CodeEntry (:doc |)
